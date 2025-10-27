@@ -188,9 +188,9 @@ public class CountryService {
         g.fillRect(0, 0, width, height);
 
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString("🌍 Country Summary", 20, 40);
-        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        g.drawString("Country Summary", 20, 40);
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
         g.drawString("Total countries: " + totalCountries, 20, 80);
         g.drawString("Last refreshed: " + lastRefreshTimestamp.toString(), 20, 110);
 
