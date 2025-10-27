@@ -24,10 +24,10 @@ import java.util.Random;
 @Service
 public class CountryService {
 
-    @Value("${countries}")
+    @Value("${countries.url}")
     private String countryUrl;
 
-    @Value("${exchange.rates}")
+    @Value("${exchange.rates.url}")
     private String exchangeUrl;
 
     private final CountryRepository countryRepository;
@@ -63,6 +63,7 @@ public class CountryService {
                 }
 
                 countryRepository.save(country);
+                System.out.println("DB URL: " + System.getenv("SPRING_DATASOURCE_URL"));
             }
             this.lastRefreshTimestamp = timestamp;
         } catch (RestClientException e) {
