@@ -35,11 +35,10 @@ public class exchangeRatesController {
     public ResponseEntity<?> getAllCountries(
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String currency,
-            @RequestParam(required = false) String name,
             @RequestParam(required = false, defaultValue = "name_asc") String sort
     ){
         try {
-            List<Country> countries = countryService.getCountries(region, currency, name, sort);
+            List<Country> countries = countryService.getCountries(region, currency, sort);
             return ResponseEntity.ok(countries);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

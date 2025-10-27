@@ -72,7 +72,7 @@ public class CountryService {
     }
 
 
-    public List<Country> getCountries(String region, String currency, String name, String sort) {
+    public List<Country> getCountries(String region, String currency, String sort) {
         Sort sortOrder = getSortOrder(sort);
 
         if (region != null && currency != null) {
