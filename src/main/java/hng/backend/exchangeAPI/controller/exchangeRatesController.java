@@ -23,7 +23,7 @@ public class exchangeRatesController {
     public ResponseEntity<?> refreshCountries(){
         try{
             countryService.fetchAndSaveCountryData();
-            System.out.println("Finished countryService.fetchAndSaveCountryData()");
+            System.out.println("Finished refreshing Country Data");
             return ResponseEntity.ok().build();
         } catch(Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -53,9 +53,9 @@ public class exchangeRatesController {
     }
 
     @DeleteMapping("/{name}")
-    public ResponseEntity<String> deleteCountryByName(@PathVariable String name) {
+    public ResponseEntity.HeadersBuilder<?> deleteCountryByName(@PathVariable String name) {
         countryService.deleteCountryByName(name);
-        return ResponseEntity.ok("Country '" + name + "' deleted successfully.");
+        return ResponseEntity.noContent();
     }
 
     @GetMapping("/status")

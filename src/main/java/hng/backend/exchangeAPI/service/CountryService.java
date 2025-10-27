@@ -3,6 +3,7 @@ package hng.backend.exchangeAPI.service;
 import hng.backend.exchangeAPI.dto.CountryUrlResponse;
 import hng.backend.exchangeAPI.dto.ExchangeUrlResponse;
 import hng.backend.exchangeAPI.dto.StatusResponse;
+import hng.backend.exchangeAPI.exception.ExternalApiException;
 import hng.backend.exchangeAPI.model.Country;
 import hng.backend.exchangeAPI.repository.CountryRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +50,7 @@ public class CountryService {
             ExchangeUrlResponse exchangeRates = restTemplate.getForObject(exchangeUrl, ExchangeUrlResponse.class);
 
             if (countries == null || exchangeRates == null) {
-                throw new IllegalStateException("Failed to fetch data from one or both APIs.");
+                throw new ExternalApiException("Failed to fetch data from one or both APIs.");
             }
 
             LocalDateTime timestamp = LocalDateTime.now();
@@ -65,8 +66,8 @@ public class CountryService {
                 countryRepository.save(country);
             }
             this.lastRefreshTimestamp = timestamp;
-        } catch (RestClientException e) {
-            throw new RuntimeException("External data source unavailable: " + e.getMessage(), e);
+        } catch (RestClientException | ExternalApiException e) {
+            throw new RuntimeException("External data source unavailable: " + e.getMessage());
         }
     }
 
@@ -115,26 +116,35 @@ public class CountryService {
         country.setFlagUrl(countryData.getFlag());
         country.setLastRefreshedAt(timestamp);
 
-        if (countryData.getCurrencies() != null && !countryData.getCurrencies().isEmpty()){
+        if (countryData.getCurrencies() != null && !countryData.getCurrencies().isEmpty()) {
             String currencyCode = countryData.getCurrencies().getFirst().getCode().toUpperCase();
+            if (currencyCode != null) {
+                currencyCode = currencyCode.toUpperCase();
+            }
             country.setCurrencyCode(currencyCode);
 
-            Map<String, Double> rates = exchangeRates.getRates();
-            if (rates.containsKey(currencyCode)){
-                Double exchangeRate = rates.get(currencyCode);
-                country.setExchangeRate(exchangeRate);
+            if (currencyCode != null && exchangeRates != null && exchangeRates.getRates() != null) {
+                Map<String, Double> rates = exchangeRates.getRates();
+                if (rates.containsKey(currencyCode)) {
+                    Double exchangeRate = rates.get(currencyCode);
+                    country.setExchangeRate(exchangeRate);
 
-                double randomMultiplier = 1000 + (random.nextDouble() * 1000);
-                double estimatedGdp = (countryData.getPopulation() * randomMultiplier) / exchangeRate;
-                country.setEstimatedGdp(estimatedGdp);
+                    double randomMultiplier = 1000 + (random.nextDouble() * 1000);
+                    double estimatedGdp = (countryData.getPopulation() * randomMultiplier) / exchangeRate;
+                    country.setEstimatedGdp(estimatedGdp);
+                } else {
+                    country.setExchangeRate(null);
+                    country.setEstimatedGdp(null);
+                }
             } else {
                 country.setExchangeRate(null);
                 country.setEstimatedGdp(null);
             }
-        } else {
-            country.setCurrencyCode(null);
-            country.setExchangeRate(null);
-            country.setEstimatedGdp(0.0);
+
+        }else {
+                country.setCurrencyCode(null);
+                country.setExchangeRate(null);
+                country.setEstimatedGdp(0.0);
         }
         return country;
     }
