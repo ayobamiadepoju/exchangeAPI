@@ -15,7 +15,9 @@ import org.springframework.web.client.RestTemplate;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +171,7 @@ public class CountryService {
         return new StatusResponse(totalCountries, lastRefreshed);
     }
 
-    public File generateAndSaveSummaryImage() {
+    public byte[] generateAndSaveSummaryImage() throws IOException {
         if (lastRefreshTimestamp == null) {
             lastRefreshTimestamp = countryRepository.findLatestRefreshTime().orElse(LocalDateTime.now());
         }
@@ -201,10 +203,8 @@ public class CountryService {
 
         g.dispose();
 
-        File dir = new File("cache");
-        if (!dir.exists()) dir.mkdirs();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();ImageIO.write(image, "png", baos);
 
-        File file = new File(dir, "summary.png");
         try {
             ImageIO.write(image, "png", new File("cache/summary.png"));
             System.out.println("Saving summary image at: " + new File("cache/summary.png").getAbsolutePath());
@@ -212,6 +212,6 @@ public class CountryService {
             throw new RuntimeException("Failed to save summary image: " + e.getMessage());
         }
 
-        return file;
+        return baos.toByteArray();
     }
 }

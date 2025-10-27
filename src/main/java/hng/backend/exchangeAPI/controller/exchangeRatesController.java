@@ -63,20 +63,16 @@ public class exchangeRatesController {
     }
 
     @GetMapping("/image")
-    public ResponseEntity<?> getSummaryImage() {
+    public ResponseEntity<byte[]> getSummaryImage() {
         try {
 
-            File imageFile = countryService.generateAndSaveSummaryImage();
-            byte[] imageBytes = java.nio.file.Files.readAllBytes(imageFile.toPath());
-            return ResponseEntity.ok()
+            byte[] imageBytes = countryService.generateAndSaveSummaryImage();
+             return ResponseEntity.ok()
                     .header("Content-Type", "image/png")
                     .body(imageBytes);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to read summary image"));
+                    .body(null);
         }
     }
-
-
-
 }
