@@ -14,13 +14,12 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/countries")
 public class exchangeRatesController {
 
     @Autowired
     CountryService countryService;
 
-    @PostMapping("/refresh")
+    @PostMapping("/countries/refresh")
     public ResponseEntity<?> refreshCountries(){
         try{
             countryService.fetchAndSaveCountryData();
@@ -32,7 +31,7 @@ public class exchangeRatesController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/countries")
     public ResponseEntity<?> getAllCountries(
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String currency,
@@ -46,13 +45,13 @@ public class exchangeRatesController {
                     .body(Map.of("error", "Invalid query parameters"));
         }}
 
-    @GetMapping("/{name}")
+    @GetMapping("/countries/{name}")
     public ResponseEntity<Country> getCountryByName(@PathVariable String name) {
         Country country = countryService.getCountryByName(name);
         return ResponseEntity.ok(country);
     }
 
-    @DeleteMapping("/{name}")
+    @DeleteMapping("/countries/{name}")
     public ResponseEntity.HeadersBuilder<?> deleteCountryByName(@PathVariable String name) {
         countryService.deleteCountryByName(name);
         return ResponseEntity.noContent();
@@ -63,7 +62,7 @@ public class exchangeRatesController {
         return ResponseEntity.ok(countryService.getStatus());
     }
 
-    @GetMapping("/image")
+    @GetMapping("/countries/image")
     public ResponseEntity<byte[]> getSummaryImage() {
         try {
             log.info("Generating summary image...");
