@@ -206,7 +206,7 @@ public class CountryService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();ImageIO.write(image, "png", baos);
 
         try {
-            ImageIO.write(image, "png", new File("cache/summary.png"));
+            ImageIO.write(image, "png", baos);
             System.out.println("Saving summary image at: " + new File("cache/summary.png").getAbsolutePath());
         } catch (Exception e) {
             throw new RuntimeException("Failed to save summary image: " + e.getMessage());

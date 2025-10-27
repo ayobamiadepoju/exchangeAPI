@@ -3,15 +3,16 @@ package hng.backend.exchangeAPI.controller;
 import hng.backend.exchangeAPI.dto.StatusResponse;
 import hng.backend.exchangeAPI.model.Country;
 import hng.backend.exchangeAPI.service.CountryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/countries")
 public class exchangeRatesController {
@@ -65,12 +66,13 @@ public class exchangeRatesController {
     @GetMapping("/image")
     public ResponseEntity<byte[]> getSummaryImage() {
         try {
-
+            log.info("Generating summary image...");
             byte[] imageBytes = countryService.generateAndSaveSummaryImage();
              return ResponseEntity.ok()
                     .header("Content-Type", "image/png")
                     .body(imageBytes);
         } catch (Exception e) {
+            log.error("Failed to generate summary image: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
