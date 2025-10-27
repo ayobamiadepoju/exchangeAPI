@@ -63,7 +63,6 @@ public class CountryService {
                 }
 
                 countryRepository.save(country);
-                System.out.println("DB URL: " + System.getenv("SPRING_DATASOURCE_URL"));
             }
             this.lastRefreshTimestamp = timestamp;
         } catch (RestClientException e) {
