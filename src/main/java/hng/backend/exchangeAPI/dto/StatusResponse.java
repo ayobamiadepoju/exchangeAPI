@@ -12,7 +12,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class StatusResponse {
 
+    @JsonProperty("total_countries")
     private Long totalCountries;
 
+    @JsonProperty("last_refreshed_at")
     private LocalDateTime lastRefreshedAt;
 }

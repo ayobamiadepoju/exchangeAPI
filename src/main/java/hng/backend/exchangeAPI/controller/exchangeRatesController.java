@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RestController
@@ -36,14 +37,44 @@ public class exchangeRatesController {
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String currency,
             @RequestParam(required = false, defaultValue = "name_asc") String sort
-    ){
+    ) {
         try {
             List<Country> countries = countryService.getCountries(region, currency, sort);
+
+            if (countries == null || countries.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of(
+                                "status", "error",
+                                "message", "No countries found for the specified filters"
+                        ));
+            }
+
+            if (!isValidRegion(region) && region != null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of(
+                                "status", "error",
+                                "message", "Invalid region parameter: " + region
+                        ));
+            }
+
+            if (!isValidSort(sort)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of(
+                                "status", "error",
+                                "message", "Invalid sort parameter"
+                        ));
+            }
             return ResponseEntity.ok(countries);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Invalid query parameters"));
-        }}
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", "An error occurred while processing your request"
+                    ));
+        }
+    }
+
 
     @GetMapping("/countries/{name}")
     public ResponseEntity<Country> getCountryByName(@PathVariable String name) {
@@ -52,13 +83,20 @@ public class exchangeRatesController {
     }
 
     @DeleteMapping("/countries/{name}")
-    public ResponseEntity.HeadersBuilder<?> deleteCountryByName(@PathVariable String name) {
-        countryService.deleteCountryByName(name);
-        return ResponseEntity.noContent();
+    public ResponseEntity<?> deleteCountryByName(@PathVariable String name) {
+        try {
+            countryService.deleteCountryByName(name);
+            return ResponseEntity.noContent().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/status")
     public ResponseEntity<StatusResponse> getStatus() {
+
         return ResponseEntity.ok(countryService.getStatus());
     }
 
@@ -76,4 +114,24 @@ public class exchangeRatesController {
                     .body(null);
         }
     }
+
+
+    private boolean isValidRegion(String region) {
+        if (region == null) return true;
+        List<String> validRegions = List.of(
+                "Africa", "Americas", "Asia", "Europe", "Oceania", "Antarctic"
+        );
+        return validRegions.stream()
+                .anyMatch(r -> r.equalsIgnoreCase(region));
+    }
+
+    private boolean isValidSort(String sort) {
+        return sort != null && (
+                sort.equalsIgnoreCase("name_asc") ||
+                        sort.equalsIgnoreCase("name_desc") ||
+                        sort.equalsIgnoreCase("gdp_asc") ||
+                        sort.equalsIgnoreCase("gdp_desc")
+        );
+    }
+
 }

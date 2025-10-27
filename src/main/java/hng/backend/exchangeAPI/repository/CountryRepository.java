@@ -14,11 +14,9 @@ import java.util.Optional;
 @Repository
 public interface CountryRepository extends JpaRepository<Country, Long> {
 
-    List<Country> findByRegion(String region, Sort sort);
-
-    List<Country> findByCurrencyCode(String currency, Sort sort);
-
-    List<Country> findByRegionAndCurrencyCode(String region, String currency, Sort sort);
+    List<Country> findByRegionIgnoreCase(String region, Sort sort);
+    List<Country> findByCurrencyCodeIgnoreCase(String currencyCode, Sort sort);
+    List<Country> findByRegionIgnoreCaseAndCurrencyCodeIgnoreCase(String region, String currencyCode, Sort sort);
 
     @Query("SELECT c FROM Country c WHERE LOWER(c.name) = LOWER(:name)")
     Optional<Country> findByName(@Param("name") String name);

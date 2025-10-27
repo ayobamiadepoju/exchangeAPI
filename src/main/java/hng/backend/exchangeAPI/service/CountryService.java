@@ -78,11 +78,11 @@ public class CountryService {
         Sort sortOrder = getSortOrder(sort);
 
         if (region != null && currency != null) {
-            return countryRepository.findByRegionAndCurrencyCode(region, currency, sortOrder);
+            return countryRepository.findByRegionIgnoreCaseAndCurrencyCodeIgnoreCase(region, currency, sortOrder);
         } else if (region != null) {
-            return countryRepository.findByRegion(region, sortOrder);
+            return countryRepository.findByRegionIgnoreCase(region, sortOrder);
         } else if (currency != null) {
-            return countryRepository.findByCurrencyCode(currency, sortOrder);
+            return countryRepository.findByCurrencyCodeIgnoreCase(currency, sortOrder);
         }else {
             return countryRepository.findAll(sortOrder);
         }
@@ -120,33 +120,40 @@ public class CountryService {
 
         if (countryData.getCurrencies() != null && !countryData.getCurrencies().isEmpty()) {
             String currencyCode = countryData.getCurrencies().getFirst().getCode().toUpperCase();
-            if (currencyCode != null) {
-                currencyCode = currencyCode.toUpperCase();
-            }
-            country.setCurrencyCode(currencyCode);
+            if (currencyCode != null && !currencyCode.isBlank()) {
+                country.setCurrencyCode(currencyCode.toUpperCase());
 
-            if (currencyCode != null && exchangeRates != null && exchangeRates.getRates() != null) {
+            if (exchangeRates != null && exchangeRates.getRates() != null) {
                 Map<String, Double> rates = exchangeRates.getRates();
-                if (rates.containsKey(currencyCode)) {
-                    Double exchangeRate = rates.get(currencyCode);
+                Double exchangeRate = rates.get(currencyCode);
+
+                if (exchangeRate != null) {
                     country.setExchangeRate(exchangeRate);
 
                     double randomMultiplier = 1000 + (random.nextDouble() * 1000);
-                    double estimatedGdp = (countryData.getPopulation() * randomMultiplier) / exchangeRate;
+                    long population = country.getPopulation() != null ? country.getPopulation() : 0L;
+                    double estimatedGdp = (exchangeRate > 0 && population > 0)
+                            ? (population * randomMultiplier) / exchangeRate
+                            : 0.0;
+
                     country.setEstimatedGdp(estimatedGdp);
                 } else {
                     country.setExchangeRate(null);
-                    country.setEstimatedGdp(null);
+                    country.setEstimatedGdp(0.0);
                 }
             } else {
                 country.setExchangeRate(null);
-                country.setEstimatedGdp(null);
+                country.setEstimatedGdp(0.0);
             }
-
         }else {
                 country.setCurrencyCode(null);
                 country.setExchangeRate(null);
                 country.setEstimatedGdp(0.0);
+            }
+        }else {
+            country.setCurrencyCode(null);
+            country.setExchangeRate(null);
+            country.setEstimatedGdp(0.0);
         }
         return country;
     }
