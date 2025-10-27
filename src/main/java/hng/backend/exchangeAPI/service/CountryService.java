@@ -172,6 +172,9 @@ public class CountryService {
     }
 
     public byte[] generateAndSaveSummaryImage() throws IOException {
+        try {
+            System.setProperty("java.awt.headless", "true");
+
         if (lastRefreshTimestamp == null) {
             lastRefreshTimestamp = countryRepository.findLatestRefreshTime().orElse(LocalDateTime.now());
         }
@@ -181,16 +184,20 @@ public class CountryService {
 
         int width = 600;
         int height = 300;
+
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
+
+            Font titleFont = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+            Font textFont = new Font(Font.SANS_SERIF, Font.PLAIN, 16);
 
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, width, height);
 
         g.setColor(Color.BLACK);
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        g.setFont(titleFont);
         g.drawString("Country Summary", 20, 40);
-        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
+        g.setFont(textFont);
         g.drawString("Total countries: " + totalCountries, 20, 80);
         g.drawString("Last refreshed: " + lastRefreshTimestamp.toString(), 20, 110);
 
@@ -203,15 +210,14 @@ public class CountryService {
 
         g.dispose();
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();ImageIO.write(image, "png", baos);
+        ByteArrayOutputStream jpeg = new ByteArrayOutputStream();ImageIO.write(image, "png", jpeg);
+        ImageIO.write(image, "png", jpeg);
 
-        try {
-            ImageIO.write(image, "png", baos);
             System.out.println("Saving summary image at: " + new File("cache/summary.png").getAbsolutePath());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to save summary image: " + e.getMessage());
-        }
 
-        return baos.toByteArray();
+            return jpeg.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate summary image: " + e.getMessage());
+        }
     }
 }
